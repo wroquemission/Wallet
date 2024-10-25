@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Wallet</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        #main-view {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        #value-header {
+            width: 100%;
+            height: 6em;
+            background: #1f628e;
+            font-family: 'Roboto', sans-serif;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            border-bottom: solid .5em #174869;
+        }
+
+        #value-header-table {
+            height: 2em;
+            width: 100%;
+            text-align: center;
+            table-layout: fixed;
+        }
+
+        .balance-value {
+            color: white;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .balance-currency {
+            display: inline-block;
+        }
+
+        .balance-currency,
+        .balance-label {
+            color: #b3c6d1;
+        }
+
+        .comment {
+            font-size: 1.1em;
+            color: #8d8d8d;
+            display: flex;
+            width: 100%;
+            height: 4em;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #transactions-list {
+            width: 95%;
+            table-layout: fixed;
+            text-align: center;
+            border-collapse: collapse;
+        }
+
+        #transactions-list th {
+            font-weight: 400;
+            font-size: 1.2em;
+            color: #8d8d8d;
+            border-bottom: solid .13em #969696;
+            padding: .5em;
+        }
+
+        #transactions-list tbody tr {
+            height: 7em;
+            color: #737373;
+            border-bottom: solid .1em #cbcbcb;
+        }
+
+        .transaction-value {
+            font-size: 1.3em;
+            margin: .3em;
+        }
+
+        .negative {
+            color: #ff5757;
+        }
+
+        .positive {
+            color: #00a8a8;
+        }
+
+        #button {
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        #main-buttons {
+            position: fixed;
+            bottom: 0;
+            height: 6em;
+            width: 100%;
+            background: white;
+            border-top: solid .23em #d3d3d3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #main-buttons button {
+            min-width: 6em;
+            height: 2.5em;
+            border: none;
+            outline: none;
+            margin: .3em;
+            border-radius: .4em;
+            font-size: 1.2em;
+        }
+
+        #add-button {
+            background: #00a8a8;
+            color: white;
+        }
+
+        #subtract-button {
+            background: #ff5757;
+            color: white;
+        }
+
+        #receipt-button {
+            background: #1f628e;
+            color: white;
+        }
+
+        .hide {
+            display: none !important;
+        }
+
+        #details-back-arrow {
+            font-size: 3em;
+            color: #cbcbcb;
+            width: 1.5em;
+            text-align: center;
+            margin: 0;
+            position: absolute;
+            left: .5em;
+            top: .2em;
+        }
+
+        #details-view {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #details-balance {
+            font-size: 3em;
+            font-weight: 400;
+            margin-top: 1.5em;
+            margin-bottom: .2em;
+        }
+
+        #details-wallet {
+            margin-top: 0;
+            margin-bottom: 1.5em;
+            color: #737373;
+            font-weight: 400;
+        }
+
+        #details-table {
+            width: 85%;
+            font-size: 1.3em;
+        }
+
+        #details-table tr {
+            height: 2em;
+        }
+
+        .details-table-header {
+            color: #8d8d8d;
+        }
+
+        .details-table-item {
+            color: #5b5b5b;
+            text-align: center;
+        }
+
+        #details-comment-header {
+            color: #8d8d8d;
+            font-weight: 400;
+        }
+
+        #details-comment {
+            color: #5b5b5b;
+            font-size: 1.3em;
+            width: 80%;
+            line-height: 1.4em;
+            min-height: 1em;
+            background: #e5e5e5;
+            border-left: solid .35em #5b5b5b;
+            padding: .7em .9em;
+        }
+
+        .checkmark-input {
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .checkmark-indicator {
+            background: white;
+            box-shadow: 0 0 0 .1em #5b5b5b;
+            width: 1em;
+            height: 1em;
+            border-radius: .2em;
+            border: solid .18em white;
+            cursor: pointer;
+            margin: auto;
+        }
+
+        .checkmark-indicator:has(.checkmark-input:checked) {
+            background: #5b5b5b;
+        }
+
+        #confirmation-back-arrow {
+            font-size: 3em;
+            color: #cbcbcb;
+            width: 1.5em;
+            text-align: center;
+            margin: 0;
+            position: absolute;
+            left: .5em;
+            top: .2em;
+        }
+
+        #confirmation-view {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #confirmation-header {
+            font-size: 2.2em;
+            font-weight: 400;
+            color: #737373;
+        }
+
+        .save-discard-buttons button {
+            font-size: 1.3em;
+            width: 6em;
+            height: 2.3em;
+            margin: .7em;
+            border-radius: .3em;
+            font-weight: 400;
+        }
+
+        .save-button {
+            border: solid .15em #737373;
+            background: white;
+            color: #636363;
+        }
+
+        .discard-button {
+            border: solid .15em #ff5757;
+            background: #ff5757;
+            color: white;
+        }
+
+        #subtract-view {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #subtract-balance {
+            font-size: 3em;
+            font-weight: 400;
+            margin-top: 1.2em;
+            margin-bottom: .8em;
+            text-align: left;
+            width: 80%;
+        }
+
+        #subtract-table {
+            width: 85%;
+            font-size: 1.3em;
+        }
+
+        #subtract-table tr {
+            height: 3em;
+        }
+
+        .subtract-table-header {
+            color: #8d8d8d;
+        }
+
+        .subtract-table-item {
+            color: #5b5b5b;
+            text-align: center;
+        }
+
+        #subtract-comment-header {
+            color: #8d8d8d;
+            font-weight: 400;
+        }
+
+        #subtract-comment {
+            color: #5b5b5b;
+            font-size: 1.3em;
+            width: 80%;
+            line-height: 1.4em;
+        }
+
+        .select-input {
+            appearance: none;
+            width: 10em;
+            font-size: .9em;
+            padding: .7em 1em;
+            border: solid .1em rgb(134, 134, 134);
+            color: #5b5b5b;
+            outline: none;
+        }
+
+        .select-input-wrapper {
+            position: relative;
+            width: fit-content;
+            margin: auto;
+        }
+
+        .select-input-wrapper::before,
+        .select-input-wrapper::after {
+            --size: 0.3rem;
+            position: absolute;
+            content: "";
+            right: 1rem;
+            pointer-events: none;
+        }
+
+        .select-input-wrapper::before {
+            border-left: var(--size) solid transparent;
+            border-right: var(--size) solid transparent;
+            border-bottom: var(--size) solid #5b5b5b;
+            top: 40%;
+        }
+
+        .select-input-wrapper::after {
+            border-left: var(--size) solid transparent;
+            border-right: var(--size) solid transparent;
+            border-top: var(--size) solid #5b5b5b;
+            top: 55%;
+        }
+
+        .date-input {
+            display: none;
+        }
+
+        .date-input-wrapper {
+            width: 8em;
+            height: 1em;
+            font-size: .9em;
+            padding: .7em 1em;
+            border: solid .1em rgb(134, 134, 134);
+            color: #5b5b5b;
+            margin: auto;
+            text-align: left;
+        }
+
+        .date-input-label {
+            position: relative;
+            top: -.15em;
+        }
+
+        .text-input {
+            width: 8em;
+            height: 1em;
+            font-size: .9em;
+            padding: .7em 1em;
+            border: solid .1em rgb(134, 134, 134);
+            color: #5b5b5b;
+            outline: none;
+        }
+
+        .edit-input {
+            width: 4.5em;
+            height: 1em;
+            font-size: 100%;
+            padding: .2em .5em;
+            border: solid 3px rgb(169, 168, 168);
+            color: #5b5b5b;
+            outline: none;
+        }
+
+        .comment-input {
+            width: 90%;
+            height: 4.5em;
+            font-size: .9em;
+            font-family: 'Roboto', sans-serif;
+            padding: .7em 1em;
+            border: solid .1em rgb(134, 134, 134);
+            color: #5b5b5b;
+            outline: none;
+        }
+
+        #subtract-save {
+            background: #00a8a8;
+            border-color: #00a8a8;
+            color: white;
+            left: 1em;
+
+        }
+
+        #subtract-discard {
+            right: 1em;
+        }
+
+        #subtract-buttons button {
+            position: fixed;
+            bottom: 1em;
+        }
+
+        #add-view {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #add-balance {
+            font-size: 3em;
+            font-weight: 400;
+            margin-top: 1.2em;
+            margin-bottom: .8em;
+            text-align: left;
+            width: 80%;
+        }
+
+        #add-table {
+            width: 85%;
+            font-size: 1.3em;
+        }
+
+        #add-table tr {
+            height: 3em;
+        }
+
+        .add-table-header {
+            color: #8d8d8d;
+        }
+
+        .add-table-item {
+            color: #5b5b5b;
+            text-align: center;
+        }
+
+        #add-comment-header {
+            color: #8d8d8d;
+            font-weight: 400;
+        }
+
+        #add-comment {
+            color: #5b5b5b;
+            font-size: 1.3em;
+            width: 80%;
+            line-height: 1.4em;
+        }
+
+        #add-save {
+            background: #00a8a8;
+            border-color: #00a8a8;
+            color: white;
+            left: 1em;
+
+        }
+
+        #add-discard {
+            right: 1em;
+        }
+
+        #add-buttons button {
+            position: fixed;
+            bottom: 1em;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="main-view">
+        <div id="value-header">
+            <table id="value-header-table">
+                <tr id="value-header-balance-row">
+                    <td>
+                        <div id="msf-balance-value" class="balance-value"></div>
+                        <div class="balance-currency">円</div>
+                    </td>
+                    <td>
+                        <div id="personal-balance-value" class="balance-value"></div>
+                        <div class="balance-currency">円</div>
+                    </td>
+                    <td>
+                        <div id="icoca-balance-value" class="balance-value"></div>
+                        <div class="balance-currency">円</div>
+                    </td>
+                </tr>
+                <tr id="value-header-label-row">
+                    <td>
+                        <div class="balance-label">MSF</div>
+                    </td>
+                    <td>
+                        <div class="balance-label">PERSONAL</div>
+                    </td>
+                    <td>
+                        <div class="balance-label">ICOCA</div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="comment">
+            (Click on transactions for more details)
+        </div>
+        <table id="transactions-list">
+            <thead>
+                <tr>
+                    <th>円</th>
+                    <th>Type</th>
+                    <th>Reimburse</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody id="transactions-list-body"></tbody>
+        </table>
+        <div id="page-navigator"></div>
+        <div id="main-buttons">
+            <button id="add-button">円</button>
+            <button id="subtract-button">円</button>
+            <button id="receipt-button">RECEIPT</button>
+        </div>
+    </div>
+    <div id="details-view" class="hide"> </div>
+    <div id="confirmation-view" class="hide">
+        <div id="confirmation-back-arrow">&#8592;</div>
+        <h1 id="confirmation-header">Save changes?</h1>
+        <div id="confirmation-buttons" class="save-discard-buttons">
+            <button id="confirmation-save" class="save-button">SAVE</button>
+            <button id="confirmation-discard" class="discard-button">DISCARD</button>
+        </div>
+    </div>
+    <div id="add-view" class="hide">
+        <h1 id="add-balance" class="positive">
+            <input id="add-balance-input" type="text" class="edit-input">
+            円
+        </h1>
+        <table id="add-table">
+            <tr>
+                <td class="add-table-header">Wallet</td>
+                <td class="add-table-item">
+                    <div class="select-input-wrapper">
+                        <select id="add-wallet-input" class="select-input">
+                            <option value="MSF">
+                                MSF
+                            </option>
+                            <option value="Personal">
+                                Personal
+                            </option>
+                            <option value="ICOCA">
+                                ICOCA
+                            </option>
+                        </select>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="add-table-header">Date</td>
+                <td class="add-table-item">
+                    <div class="date-input-wrapper">
+                        <span id="add-date-label" class="date-input-label"></span>
+                        <input id="add-date-input" type="date" class="date-input">
+                    </div>
+                </td>
+            </tr>
+        </table>
+        <h2 id="add-comment-header">Comment</h2>
+        <div id="add-comment">
+            <textarea class="comment-input" rows="5"></textarea>
+        </div>
+        <div id="add-buttons" class="save-discard-buttons">
+            <button id="add-save" class="save-button">SAVE</button>
+            <button id="add-discard" class="discard-button">DISCARD</button>
+        </div>
+    </div>
+    <div id="subtract-view" class="hide">
+        <h1 id="subtract-balance" class="negative">1.300</h1>
+        <table id="subtract-table">
+            <tr>
+                <td class="subtract-table-header">Wallet</td>
+                <td class="subtract-table-item">
+                    <div class="select-input-wrapper">
+                        <select class="select-input">
+                            <option value="MSF">
+                                MSF
+                            </option>
+                            <option value="Personal">
+                                Personal
+                            </option>
+                            <option value="ICOCA">
+                                ICOCA
+                            </option>
+                        </select>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="subtract-table-header">Type</td>
+                <td class="subtract-table-item">
+                    <div class="select-input-wrapper">
+                        <select class="select-input">
+                            <option value="Food">
+                                Food
+                            </option>
+                            <option value="House">
+                                House
+                            </option>
+                            <option value="Hygiene">
+                                Hygiene
+                            </option>
+                            <option value="Travel">
+                                Travel
+                            </option>
+                            <option value="ICOCA">
+                                ICOCA
+                            </option>
+                            <option value="Misc">
+                                Misc
+                            </option>
+                        </select>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="subtract-table-header">Reimbursable</td>
+                <td class="subtract-table-item">
+                    <div class="checkmark-indicator">
+                        <input type="checkbox"" class=" checkmark-input">
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="subtract-table-header">Reimbursed</td>
+                <td class="subtract-table-item">
+                    <div class="checkmark-indicator">
+                        <input type="checkbox"" class=" checkmark-input">
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="subtract-table-header">Date</td>
+                <td class="subtract-table-item">
+                    <div class="date-input-wrapper">
+                        <span class="date-input-label">10/19/2024</span>
+                        <input type="date" class="date-input">
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="subtract-table-header">From</td>
+                <td class="subtract-table-item">
+                    <input type="text" class="text-input">
+                </td>
+            </tr>
+            <tr>
+                <td class="subtract-table-header">To</td>
+                <td class="subtract-table-item">
+                    <input type="text" class="text-input">
+                </td>
+            </tr>
+        </table>
+        <h2 id="subtract-comment-header">Comment</h2>
+        <div id="subtract-comment">
+            <textarea class="comment-input" rows="5"></textarea>
+        </div>
+        <div id="subtract-buttons" class="save-discard-buttons">
+            <button id="subtract-save" class="save-button">SAVE</button>
+            <button id="subtract-discard" class="discard-button">DISCARD</button>
+        </div>
+    </div>
+    <div id="receipt-view"></div>
+
+    <script>
+        const mainView = document.querySelector('#main-view');
+        const detailsView = document.querySelector('#details-view');
+        const addView = document.querySelector('#add-view');
+
+        const dateInputWrappers = document.querySelectorAll('.date-input-wrapper');
+        const transactionsBody = document.querySelector('#transactions-list-body');
+
+        const msfBalanceLabel = document.querySelector('#msf-balance-value');
+        const personalBalanceLabel = document.querySelector('#personal-balance-value');
+        const icocaBalanceLabel = document.querySelector('#icoca-balance-value');
+
+        const addButton = document.querySelector('#add-button');
+        const subtractButton = document.querySelector('#subtract-button');
+        const receiptButton = document.querySelector('#receipt-button');
+
+        const addViewBalance = document.querySelector('#add-balance-input');
+        const addViewWallet = document.querySelector('#add-wallet-input');
+        const addDateLabel = document.querySelector('#add-date-label');
+        const addDateInput = document.querySelector('#add-date-input');
+        const addCommentInput = document.querySelector('#add-comment');
+
+        let currentTransaction = undefined;
+
+        function formatDate(date) {
+            const parsedDate = new Date(date);
+            return parsedDate.toLocaleDateString();
+        }
+
+        function formatNumber(number) {
+            if (number === 0) {
+                return '―';
+            }
+            return Intl.NumberFormat().format(number);
+        }
+
+        function createElement(tag, parameters) {
+            const { parent, elementClass, ID, text, eventListener, attributes } = parameters;
+
+            const element = document.createElement(tag);
+
+            if (elementClass) {
+                if (Array.isArray(elementClass)) {
+                    elementClass.forEach(x => {
+                        element.classList.add(x);
+                    });
+                } else {
+                    element.classList.add(elementClass);
+                }
+            }
+
+            if (ID) {
+                element.setAttribute('id', ID);
+            }
+
+            if (parent) {
+                parent.appendChild(element);
+            }
+
+            if (eventListener) {
+                const [trigger, callback] = eventListener;
+
+                if (Array.isArray(trigger)) {
+                    trigger.forEach(type => {
+                        element.addEventListener(type, callback, false);
+                    });
+                } else {
+                    element.addEventListener(trigger, callback, false);
+                }
+            }
+
+            if (text) {
+                element.innerHTML = text;
+            }
+
+            if (attributes) {
+                for (const attribute in attributes) {
+                    if (attributes[attribute]) {
+                        element.setAttribute(attribute, attributes[attribute]);
+                    }
+                }
+            }
+
+            return element;
+        }
+
+        class Ledger {
+            constructor() {
+                this.transactions = [];
+            }
+
+            loadList(list) {
+                list.forEach(item => {
+                    const {
+                        value,
+                        wallet,
+                        type,
+                        reimbursable,
+                        reimbursed,
+                        date,
+                        from,
+                        to,
+                        travelType,
+                        comment
+                    } = item;
+
+                    const transaction = new Transaction(
+                        value,
+                        wallet,
+                        type,
+                        reimbursable,
+                        reimbursed,
+                        date,
+                        from,
+                        to,
+                        travelType,
+                        comment
+                    );
+
+                    transaction.ledger = this;
+                    this.transactions.push(transaction);
+                });
+            }
+
+            loadStorage() {}
+
+            saveStorage() {}
+
+            summarize() {
+                let balance = {
+                    MSF: 0,
+                    Personal: 0,
+                    ICOCA: 0
+                };
+
+                this.transactions.forEach(transaction => {
+                    balance[transaction.wallet] += transaction.value;
+                });
+
+                msfBalanceLabel.innerText = formatNumber(balance.MSF);
+                personalBalanceLabel.innerText = formatNumber(balance.Personal);
+                icocaBalanceLabel.innerText = formatNumber(balance.ICOCA);
+            }
+
+            renderList() {
+                while (transactionsBody.firstChild) {
+                    transactionsBody.firstChild.remove();
+                }
+
+                this.transactions.forEach(transaction => {
+                    const row = transaction.renderRow();
+                    transactionsBody.appendChild(row);
+                });
+            }
+        }
+
+        class Transaction {
+            constructor(value, wallet, type, reimbursable, reimbursed, date, from, to, travelType, comment) {
+                this.value = value;
+                this.wallet = wallet;
+                this.type = type;
+                this.reimbursable = reimbursable;
+                this.reimbursed = reimbursed;
+                this.date = date;
+                this.from = from;
+                this.to = to;
+                this.travelType = travelType;
+                this.comment = comment;
+
+                this.ledger = undefined;
+            }
+
+            renderRow() {
+                const rowElement = createElement('TR', {
+                    eventListener: ['click', this.renderDetails.bind(this)]
+                });
+
+                const valueColumn = createElement('TD', {
+                    parent: rowElement
+                });
+
+                const valueElement = createElement('DIV', {
+                    parent: valueColumn,
+                    elementClass: ['transaction-value', this.value >= 0 ? 'positive' : 'negative'],
+                    text: formatNumber(this.value)
+                });
+
+                const walletElement = createElement('DIV', {
+                    parent: valueColumn,
+                    elementClass: 'transaction-wallet',
+                    text: this.wallet
+                });
+
+                const typeColumn = createElement('TD', {
+                    parent: rowElement,
+                    text: this.type
+                });
+
+                const reimburseColumn = createElement('TD', {
+                    parent: rowElement,
+                    text: 'No'
+                });
+
+                const dateColumn = createElement('TD', {
+                    parent: rowElement,
+                    text: formatDate(this.date)
+                });
+
+                return rowElement;
+            }
+
+            createEdit(element, type, property, callback) {
+                element.setAttribute('editing', 'yes');
+
+                if (type === 'number') {
+                    while (element.firstChild) {
+                        element.firstChild.remove();
+                    }
+
+                    const input = createElement('INPUT', {
+                        parent: element,
+                        elementClass: 'edit-input',
+                        attributes: {
+                            'type': 'text'
+                        },
+                        eventListener: [['change', 'focusout'], e => {
+                            const value = parseInt(input.value);
+
+                            if (!isNaN(value)) {
+                                this[property] = value;
+                                element.innerText = formatNumber(value);
+                                
+                                if (value < 0) {
+                                    element.classList.remove('positive');
+                                    element.classList.add('negative');
+                                } else {
+                                    element.classList.remove('negative');
+                                    element.classList.add('positive');
+                                }
+                            }
+
+                            input.remove();
+                            element.setAttribute('editing', 'no');
+
+                            if (callback) {
+                                callback(value);
+                            }
+                        }]
+                    });
+
+                    input.focus();
+                    input.value = this[property];
+                } else if (type === 'text') {
+                    while (element.firstChild) {
+                        element.firstChild.remove();
+                    }
+
+                    const input = createElement('INPUT', {
+                        parent: element,
+                        elementClass: 'edit-input',
+                        attributes: {
+                            'type': 'text'
+                        },
+                        eventListener: [['change', 'focusout'], e => {
+                            const value = input.value;
+
+                            this[property] = value;
+                            element.innerText = value;
+                                
+                            input.remove();
+                            element.setAttribute('editing', 'no');
+
+                            if (callback) {
+                                callback(value);
+                            }
+                        }]
+                    });
+
+                    input.focus();
+                    input.value = this[property];
+                } else if (type === 'textarea') {
+                    while (element.firstChild) {
+                        element.firstChild.remove();
+                    }
+
+                    const input = createElement('TEXTAREA', {
+                        parent: element,
+                        elementClass: 'comment-input',
+                        eventListener: [['change', 'focusout'], e => {
+                            const value = input.value;
+
+                            this[property] = value;
+                            element.innerText = value;
+                                
+                            input.remove();
+                            element.setAttribute('editing', 'no');
+
+                            if (callback) {
+                                callback(value);
+                            }
+                        }]
+                    });
+
+                    input.focus();
+                    input.value = this[property];
+                } else if (type === 'date') {
+                    while (element.firstChild) {
+                        element.firstChild.remove();
+                    }
+
+                    const wrapper = createElement('DIV', {
+                        parent: element,
+                        elementClass: 'date-input-wrapper',
+                        eventListener: ['click', dateWrapperCallback]
+                    });
+
+                    createElement('SPAN', {
+                        parent: wrapper,
+                        elementClass: 'date-input-label',
+                        text: formatDate(this[property])
+                    });
+
+                    const input = createElement('INPUT', {
+                        parent: wrapper,
+                        elementClass: 'date-input',
+                        attributes: {
+                            'type': 'date',
+                            'value': this[property]
+                        },
+                        eventListener: [['change', 'focusout'], e => {
+                            const value = input.value;
+
+                            this[property] = value;
+                            element.innerText = formatDate(value);
+                                
+                            input.remove();
+                            element.setAttribute('editing', 'no');
+
+                            if (callback) {
+                                callback(value);
+                            }
+                        }]
+                    });
+
+                    wrapper.click();
+                } else if (Array.isArray(type)) {
+                    while (element.firstChild) {
+                        element.firstChild.remove();
+                    }
+
+                    const select = createElement('SELECT', {
+                        parent: createElement('DIV', {
+                            elementClass: 'select-input-wrapper',
+                            parent: element
+                        }),
+                        elementClass: 'select-input',
+                        attributes: {
+                            value: this[property]
+                        },
+                        eventListener: [['change', 'focusout'], e => {
+                            const value = select.value;
+
+                            this[property] = value;
+                            element.innerText = value;
+
+                            select.remove();
+                            element.setAttribute('editing', 'no');
+
+                            if (callback) {
+                                callback(value);
+                            }
+                        }]
+                    });
+
+                    type.forEach(option => {
+                        createElement('OPTION', {
+                            parent: select,
+                            text: option,
+                            attributes: {
+                                value: option
+                            }
+                        });
+                    });
+
+                    select.showPicker();
+                }
+            }
+
+            renderDetails() {
+                currentTransaction = this;
+
+                while (detailsView.firstChild) {
+                    detailsView.firstChild.remove();
+                }
+
+                createElement('DIV', {
+                    parent: detailsView,
+                    ID: 'details-back-arrow',
+                    text: '&#8592;',
+                    eventListener: ['click', () => {
+                        this.ledger.summarize();
+                        this.ledger.renderList();
+
+                        detailsView.classList.add('hide');
+                        mainView.classList.remove('hide');
+                    }]
+                });
+
+                const balanceHeader = createElement('H1', {
+                    parent: detailsView,
+                    elementClass: this.value >= 0 ? 'positive' : 'negative',
+                    ID: 'details-balance',
+                    text: formatNumber(this.value),
+                    eventListener: ['click', () => {
+                        if (balanceHeader.getAttribute('editing') !== 'yes') {
+                            this.createEdit(balanceHeader, 'number', 'value');
+                        }
+                    }]
+                });
+
+                const wallet = createElement('H2', {
+                    parent: detailsView,
+                    ID: 'details-wallet',
+                    text: this.wallet,
+                    eventListener: ['click', () => {
+                        if (wallet.getAttribute('editing') !== 'yes') {
+                            this.createEdit(wallet, [
+                                'MSF',
+                                'Personal',
+                                'ICOCA'
+                            ], 'wallet');
+                        }
+                    }]
+                });
+
+                const detailsTable = createElement('TABLE', {
+                    ID: 'details-table',
+                    parent: detailsView
+                });
+
+                const typeRow = createElement('TR', {
+                    parent: detailsTable
+                });
+
+                createElement('TD', {
+                    parent: typeRow,
+                    elementClass: 'details-table-header',
+                    text: 'Type'
+                });
+
+                const typeColumn = createElement('TD', {
+                    parent: typeRow,
+                    elementClass: 'details-table-item',
+                    text: this.type,
+                    eventListener: ['click', () => {
+                        if (typeColumn.getAttribute('editing') !== 'yes') {
+                            this.createEdit(typeColumn, [
+                                'Food',
+                                'House',
+                                'Hygiene',
+                                'Travel',
+                                'ICOCA',
+                                'Misc'
+                            ], 'type', type => {
+                                if (type !== 'Travel') {
+                                    fromRow.classList.add('hide');
+                                    toRow.classList.add('hide');
+                                } else {
+                                    fromRow.classList.remove('hide');
+                                    toRow.classList.remove('hide');
+                                }
+                            });
+                        }
+                    }]
+                });
+
+                const reimbursableRow = createElement('TR', {
+                    parent: detailsTable
+                });
+
+                createElement('TD', {
+                    parent: reimbursableRow,
+                    elementClass: 'details-table-header',
+                    text: 'Reimbursable'
+                });
+                const reimbursableColumn = createElement('TD', {
+                    parent: reimbursableRow,
+                    elementClass: 'details-table-item'
+                });
+                createElement('INPUT', {
+                    parent: createElement('DIV', {
+                        elementClass: 'checkmark-indicator',
+                        parent: reimbursableColumn
+                    }),
+                    elementClass: 'checkmark-input',
+                    eventListener: ['change', e => {
+                        if (e.currentTarget.checked) {
+                            reimbursedRow.classList.remove('hide');
+                        } else {
+                            reimbursedRow.classList.add('hide');
+                        }
+                    }],
+                    attributes: {
+                        type: 'checkbox',
+                        checked: this.reimbursable
+                    }
+                });
+
+                const reimbursedRow = createElement('TR', {
+                    parent: detailsTable,
+                    elementClass: this.reimbursable ? '' : 'hide'
+                });
+
+                createElement('TD', {
+                    parent: reimbursedRow,
+                    elementClass: 'details-table-header',
+                    text: 'Reimbursed'
+                });
+                const reimbursedColumn = createElement('TD', {
+                    parent: reimbursedRow,
+                    elementClass: 'details-table-item'
+                });
+
+                createElement('INPUT', {
+                    parent: createElement('DIV', {
+                        elementClass: 'checkmark-indicator',
+                        parent: reimbursedColumn
+                    }),
+                    elementClass: 'checkmark-input',
+                    attributes: {
+                        type: 'checkbox',
+                        checked: this.reimbursed
+                    }
+                });
+
+                const dateRow = createElement('TR', {
+                    parent: detailsTable
+                });
+
+                createElement('TD', {
+                    parent: dateRow,
+                    elementClass: 'details-table-header',
+                    text: 'Date'
+                });
+                const dateColumn = createElement('TD', {
+                    parent: dateRow,
+                    elementClass: 'details-table-item',
+                    text: formatDate(this.date),
+                    eventListener: ['click', () => {
+                        if (dateColumn.getAttribute('editing') !== 'yes') {
+                            this.createEdit(dateColumn, 'date', 'date');
+                        }
+                    }]
+                });
+
+                const fromRow = createElement('TR', {
+                    parent: detailsTable,
+                    elementClass: this.type === 'Travel' ? '' : 'hide'
+                });
+
+                createElement('TD', {
+                    parent: fromRow,
+                    elementClass: 'details-table-header',
+                    text: 'From'
+                });
+                const fromColumn = createElement('TD', {
+                    parent: fromRow,
+                    elementClass: 'details-table-item',
+                    text: this.from,
+                    eventListener: ['click', () => {
+                        if (fromColumn.getAttribute('editing') !== 'yes') {
+                            this.createEdit(fromColumn, 'text', 'from');
+                        }
+                    }]
+                });
+
+                const toRow = createElement('TR', {
+                    parent: detailsTable,
+                    elementClass: this.type === 'Travel' ? '' : 'hide'
+                });
+
+                createElement('TD', {
+                    parent: toRow,
+                    elementClass: 'details-table-header',
+                    text: 'To'
+                });
+                const toColumn = createElement('TD', {
+                    parent: toRow,
+                    elementClass: 'details-table-item',
+                    text: this.to,
+                    eventListener: ['click', () => {
+                        if (toColumn.getAttribute('editing') !== 'yes') {
+                            this.createEdit(toColumn, 'text', 'to');
+                        }
+                    }]
+                });
+
+                const travelTypeRow = createElement('TR', {
+                    parent: detailsTable,
+                    elementClass: this.type === 'Travel' ? '' : 'hide'
+                });
+
+                createElement('TD', {
+                    parent: travelTypeRow,
+                    elementClass: 'details-table-header',
+                    text: 'Travel Type'
+                });
+                const travelTypeColumn = createElement('TD', {
+                    parent: travelTypeRow,
+                    elementClass: 'details-table-item',
+                    text: this.travelType,
+                    eventListener: ['click', () => {
+                        if (typeColumn.getAttribute('editing') !== 'yes') {
+                            this.createEdit(travelTypeColumn, [
+                                'Koukan',
+                                'District Meeting',
+                                'Zone Conference',
+                                'Interviews',
+                                'Satellite Area',
+                                'Transfers',
+                                'MLC',
+                                'TTTM',
+                                'Health',
+                                'Baptismal Interview',
+                                'District Conference',
+                                'Stake Conference',
+                                'Branch Conference',
+                                'Mission Conference',
+                                'Other Travel'
+                            ], 'travelType');
+                        }
+                    }]
+                });
+
+                createElement('H2', {
+                    parent: detailsView,
+                    ID: 'details-comment-header',
+                    text: 'Comment'
+                });
+
+                const comment = createElement('DIV', {
+                    parent: detailsView,
+                    ID: 'details-comment',
+                    text: this.comment,
+                    eventListener: ['click', () => {
+                        if (comment.getAttribute('editing') !== 'yes') {
+                            this.createEdit(comment, 'textarea', 'comment');
+                        }
+                    }]
+                });
+
+                mainView.classList.add('hide');
+                detailsView.classList.remove('hide');
+            }
+        }
+
+        addButton.addEventListener('click', () => {
+            addView.classList.remove('hide');
+            mainView.classList.add('hide');
+
+            const today = new Date().toISOString().split('T')[0];
+
+            addDateInput.value = today;
+            addDateLabel.innerText = formatDate(today);
+        }, false);
+
+        function dateWrapperCallback(e) {
+            const wrapper = e.currentTarget;
+
+            const input = wrapper.querySelector('.date-input');
+            const label = wrapper.querySelector('.date-input-label');
+
+            input.showPicker();
+
+            input.addEventListener('change', () => {
+                label.innerText = formatDate(input.value);
+            });
+        }
+
+        dateInputWrappers.forEach(wrapper => {
+            wrapper.addEventListener('click', dateWrapperCallback, false);
+        });
+
+        const ledger = new Ledger();
+
+        const sample = [
+            {
+                value: -324,
+                wallet: 'MSF',
+                type: 'Food',
+                reimbursable: true,
+                reimbursed: false,
+                date: '2024-09-28',
+                from: '',
+                to: '',
+                travelType: '',
+                comment: ''
+            },
+            {
+                value: -2000,
+                wallet: 'Personal',
+                type: 'Misc',
+                reimbursable: false,
+                reimbursed: false,
+                date: '2024-09-26',
+                from: '',
+                to: '',
+                travelType: '',
+                comment: ''
+            },
+            {
+                value: -2500,
+                wallet: 'MSF',
+                type: 'Travel',
+                reimbursable: true,
+                reimbursed: false,
+                date: '2024-09-29',
+                from: 'Tennouji Sta.',
+                to: 'USJ',
+                travelType: 'Koukan',
+                comment: 'I promise that I had a good reason for this. We baptized somebody in the Disney pool.'
+            },
+            {
+                value: 18000,
+                wallet: 'MSF',
+                type: 'Payment',
+                reimbursable: false,
+                reimbursed: false,
+                date: '2024-09-26',
+                from: '',
+                to: '',
+                travelType: '',
+                comment: ''
+            }
+        ];
+
+        ledger.loadList(sample);
+        ledger.renderList();
+        ledger.summarize();
+    </script>
+
+</body>
+
+</html>
