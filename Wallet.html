@@ -284,6 +284,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            padding-bottom: 8em;
+            overflow-y: scroll;
         }
 
         #subtract-balance {
@@ -420,16 +422,26 @@
             border-color: #00a8a8;
             color: white;
             left: 1em;
-
         }
 
         #subtract-discard {
             right: 1em;
         }
 
-        #subtract-buttons button {
+        #subtract-buttons {
             position: fixed;
-            bottom: 1em;
+            bottom: 0;
+            height: 6em;
+            width: 100%;
+            background: white;
+            border-top: solid .23em #d3d3d3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #subtract-buttons button {
+            margin: 2em;
         }
 
         #add-view {
@@ -489,9 +501,20 @@
             right: 1em;
         }
 
-        #add-buttons button {
+        #add-buttons {
             position: fixed;
-            bottom: 1em;
+            bottom: 0;
+            height: 6em;
+            width: 100%;
+            background: white;
+            border-top: solid .23em #d3d3d3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #add-buttons button {
+            margin: 2em;
         }
     </style>
 </head>
@@ -559,7 +582,7 @@
     </div>
     <div id="add-view" class="hide">
         <h1 id="add-balance" class="positive">
-            <input id="add-balance-input" type="text" class="edit-input">
+            <input id="add-balance-input" type="text" class="edit-input" autocomplete="off">
             円
         </h1>
         <table id="add-table">
@@ -593,7 +616,7 @@
         </table>
         <h2 id="add-comment-header">Comment</h2>
         <div id="add-comment">
-            <textarea class="comment-input" rows="5"></textarea>
+            <textarea id="add-comment-input" class="comment-input" rows="5"></textarea>
         </div>
         <div id="add-buttons" class="save-discard-buttons">
             <button id="add-save" class="save-button">SAVE</button>
@@ -601,13 +624,16 @@
         </div>
     </div>
     <div id="subtract-view" class="hide">
-        <h1 id="subtract-balance" class="negative">1.300</h1>
+        <h1 id="subtract-balance" class="negative">
+            <input id="subtract-balance-input" type="text" class="edit-input" autocomplete="off">
+            円
+        </h1>
         <table id="subtract-table">
             <tr>
                 <td class="subtract-table-header">Wallet</td>
                 <td class="subtract-table-item">
                     <div class="select-input-wrapper">
-                        <select class="select-input">
+                        <select id="subtract-wallet-input" class="select-input">
                             <option value="MSF">
                                 MSF
                             </option>
@@ -625,7 +651,7 @@
                 <td class="subtract-table-header">Type</td>
                 <td class="subtract-table-item">
                     <div class="select-input-wrapper">
-                        <select class="select-input">
+                        <select id="subtract-type-input" class="select-input">
                             <option value="Food">
                                 Food
                             </option>
@@ -641,6 +667,9 @@
                             <option value="ICOCA">
                                 ICOCA
                             </option>
+                            <option value="Payment">
+                                Payment
+                            </option>
                             <option value="Misc">
                                 Misc
                             </option>
@@ -652,15 +681,15 @@
                 <td class="subtract-table-header">Reimbursable</td>
                 <td class="subtract-table-item">
                     <div class="checkmark-indicator">
-                        <input type="checkbox"" class=" checkmark-input">
+                        <input id="subtract-reimbursable-input" type="checkbox"" class=" checkmark-input">
                     </div>
                 </td>
             </tr>
-            <tr>
+            <tr id="subtract-reimbursed-row" class="hide">
                 <td class="subtract-table-header">Reimbursed</td>
                 <td class="subtract-table-item">
                     <div class="checkmark-indicator">
-                        <input type="checkbox"" class=" checkmark-input">
+                        <input id="subtract-reimbursed-input" type="checkbox"" class=" checkmark-input">
                     </div>
                 </td>
             </tr>
@@ -668,27 +697,81 @@
                 <td class="subtract-table-header">Date</td>
                 <td class="subtract-table-item">
                     <div class="date-input-wrapper">
-                        <span class="date-input-label">10/19/2024</span>
-                        <input type="date" class="date-input">
+                        <span id="subtract-date-label" class="date-input-label">10/19/2024</span>
+                        <input id="subtract-date-input" type="date" class="date-input">
                     </div>
                 </td>
             </tr>
             <tr>
                 <td class="subtract-table-header">From</td>
                 <td class="subtract-table-item">
-                    <input type="text" class="text-input">
+                    <input id="subtract-from-input" type="text" class="text-input">
                 </td>
             </tr>
             <tr>
                 <td class="subtract-table-header">To</td>
                 <td class="subtract-table-item">
-                    <input type="text" class="text-input">
+                    <input id="subtract-to-input" type="text" class="text-input">
+                </td>
+            </tr>
+            <tr id="subtract-travel-type-row" class="hide">
+                <td class="subtract-table-header">Travel Type</td>
+                <td class="subtract-table-item">
+                    <div class="select-input-wrapper">
+                        <select id="subtract-travel-type-input" class="select-input">
+                            <option value="Koukan">
+                                Koukan
+                            </option>
+                            <option value="District Meeting">
+                                District Meeting
+                            </option>
+                            <option value="Zone Conference">
+                                Zone Conference
+                            </option>
+                            <option value="Interviews">
+                                Interviews
+                            </option>
+                            <option value="Satellite Area">
+                                Satellite Area
+                            </option>
+                            <option value="Transfers">
+                                Transfers
+                            </option>
+                            <optio value="MLC"n>
+                                MLC
+                            </option>
+                            <option value="TTTM">
+                                TTTM
+                            </option>
+                            <option value="Health">
+                                Health
+                            </option>
+                            <option value="Baptismal Interview">
+                                Baptismal Interview
+                            </option>
+                            <option value="District Conference">
+                                District Conference
+                            </option>
+                            <option value="Stake Conference">
+                                Stake Conference
+                            </option>
+                            <option value="Branch Conference">
+                                Branch Conference
+                            </option>
+                            <option value="Mission Conference">
+                                Mission Conference
+                            </option>
+                            <option value="Other Travel">
+                                Other Travel
+                            </option>
+                        </select>
+                    </div>
                 </td>
             </tr>
         </table>
         <h2 id="subtract-comment-header">Comment</h2>
         <div id="subtract-comment">
-            <textarea class="comment-input" rows="5"></textarea>
+            <textarea id="subtract-comment-input" class="comment-input" rows="5"></textarea>
         </div>
         <div id="subtract-buttons" class="save-discard-buttons">
             <button id="subtract-save" class="save-button">SAVE</button>
@@ -701,10 +784,11 @@
         const mainView = document.querySelector('#main-view');
         const detailsView = document.querySelector('#details-view');
         const addView = document.querySelector('#add-view');
+        const subtractView = document.querySelector('#subtract-view');
 
         const dateInputWrappers = document.querySelectorAll('.date-input-wrapper');
         const transactionsBody = document.querySelector('#transactions-list-body');
-
+''
         const msfBalanceLabel = document.querySelector('#msf-balance-value');
         const personalBalanceLabel = document.querySelector('#personal-balance-value');
         const icocaBalanceLabel = document.querySelector('#icoca-balance-value');
@@ -717,7 +801,25 @@
         const addViewWallet = document.querySelector('#add-wallet-input');
         const addDateLabel = document.querySelector('#add-date-label');
         const addDateInput = document.querySelector('#add-date-input');
-        const addCommentInput = document.querySelector('#add-comment');
+        const addCommentInput = document.querySelector('#add-comment-input');
+        const addSaveButton = document.querySelector('#add-save');
+        const addDiscardButton = document.querySelector('#add-discard');
+
+        const subtractViewBalance = document.querySelector('#subtract-balance-input');
+        const subtractViewWallet = document.querySelector('#subtract-wallet-input');
+        const subtractTypeInput = document.querySelector('#subtract-type-input');
+        const subtractReimbursableInput = document.querySelector('#subtract-reimbursable-input');
+        const subtractReimbursedInput = document.querySelector('#subtract-reimbursed-input');
+        const subtractReimbursedRow = document.querySelector('#subtract-reimbursed-row');
+        const subtractDateLabel = document.querySelector('#subtract-date-label');
+        const subtractDateInput = document.querySelector('#subtract-date-input');
+        const subtractFromInput = document.querySelector('#subtract-from-input');
+        const subtractToInput = document.querySelector('#subtract-to-input');
+        const subtractTravelTypeRow = document.querySelector('#subtract-travel-type-row');
+        const subtractTravelTypeInput = document.querySelector('#subtract-travel-type-input');
+        const subtractCommentInput = document.querySelector('#subtract-comment-input');
+        const subtractSaveButton = document.querySelector('#subtract-save');
+        const subtractDiscardButton = document.querySelector('#subtract-discard');
 
         let currentTransaction = undefined;
 
@@ -788,36 +890,40 @@
                 this.transactions = [];
             }
 
+            addTransaction(data) {
+                const {
+                    value,
+                    wallet,
+                    type,
+                    reimbursable,
+                    reimbursed,
+                    date,
+                    from,
+                    to,
+                    travelType,
+                    comment
+                } = data;
+
+                const transaction = new Transaction(
+                    value,
+                    wallet,
+                    type,
+                    reimbursable,
+                    reimbursed,
+                    date,
+                    from,
+                    to,
+                    travelType,
+                    comment
+                );
+
+                transaction.ledger = this;
+                this.transactions.push(transaction);
+            }
+
             loadList(list) {
                 list.forEach(item => {
-                    const {
-                        value,
-                        wallet,
-                        type,
-                        reimbursable,
-                        reimbursed,
-                        date,
-                        from,
-                        to,
-                        travelType,
-                        comment
-                    } = item;
-
-                    const transaction = new Transaction(
-                        value,
-                        wallet,
-                        type,
-                        reimbursable,
-                        reimbursed,
-                        date,
-                        from,
-                        to,
-                        travelType,
-                        comment
-                    );
-
-                    transaction.ledger = this;
-                    this.transactions.push(transaction);
+                    this.addTransaction(item);
                 });
             }
 
@@ -846,10 +952,15 @@
                     transactionsBody.firstChild.remove();
                 }
 
-                this.transactions.forEach(transaction => {
+                this.transactions.toReversed().forEach(transaction => {
                     const row = transaction.renderRow();
                     transactionsBody.appendChild(row);
                 });
+            }
+
+            refresh() {
+                this.summarize();
+                this.renderList();
             }
         }
 
@@ -1097,8 +1208,7 @@
                     ID: 'details-back-arrow',
                     text: '&#8592;',
                     eventListener: ['click', () => {
-                        this.ledger.summarize();
-                        this.ledger.renderList();
+                        this.ledger.refresh();
 
                         detailsView.classList.add('hide');
                         mainView.classList.remove('hide');
@@ -1159,6 +1269,7 @@
                                 'Hygiene',
                                 'Travel',
                                 'ICOCA',
+                                'Payment',
                                 'Misc'
                             ], 'type', type => {
                                 if (type !== 'Travel') {
@@ -1353,33 +1464,6 @@
             }
         }
 
-        addButton.addEventListener('click', () => {
-            addView.classList.remove('hide');
-            mainView.classList.add('hide');
-
-            const today = new Date().toISOString().split('T')[0];
-
-            addDateInput.value = today;
-            addDateLabel.innerText = formatDate(today);
-        }, false);
-
-        function dateWrapperCallback(e) {
-            const wrapper = e.currentTarget;
-
-            const input = wrapper.querySelector('.date-input');
-            const label = wrapper.querySelector('.date-input-label');
-
-            input.showPicker();
-
-            input.addEventListener('change', () => {
-                label.innerText = formatDate(input.value);
-            });
-        }
-
-        dateInputWrappers.forEach(wrapper => {
-            wrapper.addEventListener('click', dateWrapperCallback, false);
-        });
-
         const ledger = new Ledger();
 
         const sample = [
@@ -1434,8 +1518,134 @@
         ];
 
         ledger.loadList(sample);
-        ledger.renderList();
-        ledger.summarize();
+        ledger.refresh();
+
+        addButton.addEventListener('click', () => {
+            addViewBalance.value = '';
+            addViewWallet.value = 'MSF';
+
+            const today = new Date().toISOString().split('T')[0];
+
+            addDateInput.value = today;
+            addDateLabel.innerText = formatDate(today);
+
+            addCommentInput.value = '';
+
+            addView.classList.remove('hide');
+            mainView.classList.add('hide');
+        }, false);
+
+        addSaveButton.addEventListener('click', () => {
+            const value = parseFloat(addViewBalance.value);
+
+            if (!isNaN(value)) {
+                const data = {
+                    value: value,
+                    wallet: addViewWallet.value,
+                    type: 'Payment',
+                    reimbursable: false,
+                    reimbursed: false,
+                    date: addDateInput.value,
+                    from: '',
+                    to: '',
+                    travelType: '',
+                    comment: addCommentInput.value
+                };
+
+                ledger.addTransaction(data);
+                ledger.refresh();
+            }
+
+            addView.classList.add('hide');
+            mainView.classList.remove('hide');
+        }, false);
+
+        addDiscardButton.addEventListener('click', () => {
+            addView.classList.add('hide');
+            mainView.classList.remove('hide');
+        }, false);
+
+        subtractButton.addEventListener('click', () => {
+            subtractViewBalance.value = '';
+            subtractViewWallet.value = 'MSF';
+            subtractReimbursableInput.checked = false;
+            subtractReimbursedInput.checked = false;
+
+            const today = new Date().toISOString().split('T')[0];
+
+            subtractDateInput.value = today;
+            subtractDateLabel.innerText = formatDate(today);
+
+            subtractFromInput.value = '';
+            subtractToInput.value = '';
+            subtractCommentInput.value = '';
+
+            subtractView.classList.remove('hide');
+            mainView.classList.add('hide');
+        }, false);
+
+        subtractReimbursableInput.addEventListener('change', e => {
+            if (e.currentTarget.checked) {
+                subtractReimbursedRow.classList.remove('hide');
+            } else {
+                subtractReimbursedRow.classList.add('hide');
+            }
+        }, false);
+
+        subtractTypeInput.addEventListener('change', e => {
+            if (e.currentTarget.value === 'Travel') {
+                subtractTravelTypeRow.classList.remove('hide');
+            } else {
+                subtractTravelTypeRow.classList.add('hide');
+            }
+        }, false);
+
+        subtractSaveButton.addEventListener('click', () => {
+            const value = -parseFloat(subtractViewBalance.value);
+
+            if (!isNaN(value)) {
+                const data = {
+                    value: value,
+                    wallet: subtractViewWallet.value,
+                    type: subtractTypeInput.value,
+                    reimbursable: subtractReimbursableInput.checked,
+                    reimbursed: subtractReimbursedInput.checked,
+                    date: subtractDateInput.value,
+                    from: subtractFromInput.value,
+                    to: subtractToInput.value,
+                    travelType: subtractTravelTypeInput.value,
+                    comment: subtractCommentInput.value
+                };
+
+                ledger.addTransaction(data);
+                ledger.refresh();
+            }
+
+            subtractView.classList.add('hide');
+            mainView.classList.remove('hide');
+        }, false);
+
+        subtractDiscardButton.addEventListener('click', () => {
+            subtractView.classList.add('hide');
+            mainView.classList.remove('hide');
+        }, false);
+
+        function dateWrapperCallback(e) {
+            const wrapper = e.currentTarget;
+
+            const input = wrapper.querySelector('.date-input');
+            const label = wrapper.querySelector('.date-input-label');
+
+            input.showPicker();
+
+            input.addEventListener('change', () => {
+                label.innerText = formatDate(input.value);
+            });
+        }
+
+        dateInputWrappers.forEach(wrapper => {
+            wrapper.addEventListener('click', dateWrapperCallback, false);
+        });
     </script>
 
 </body>
