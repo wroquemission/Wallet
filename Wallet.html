@@ -702,13 +702,13 @@
                     </div>
                 </td>
             </tr>
-            <tr>
+            <tr id="subtract-from-row" class="hide">
                 <td class="subtract-table-header">From</td>
                 <td class="subtract-table-item">
                     <input id="subtract-from-input" type="text" class="text-input">
                 </td>
             </tr>
-            <tr>
+            <tr id="subtract-to-row" class="hide">
                 <td class="subtract-table-header">To</td>
                 <td class="subtract-table-item">
                     <input id="subtract-to-input" type="text" class="text-input">
@@ -815,7 +815,8 @@
         const subtractDateInput = document.querySelector('#subtract-date-input');
         const subtractFromInput = document.querySelector('#subtract-from-input');
         const subtractToInput = document.querySelector('#subtract-to-input');
-        const subtractTravelTypeRow = document.querySelector('#subtract-travel-type-row');
+        const subtractFromRow = document.querySelector('#subtract-from-row');
+        const subtractToRow = document.querySelector('#subtract-to-row');
         const subtractTravelTypeInput = document.querySelector('#subtract-travel-type-input');
         const subtractCommentInput = document.querySelector('#subtract-comment-input');
         const subtractSaveButton = document.querySelector('#subtract-save');
@@ -927,9 +928,21 @@
                 });
             }
 
-            loadStorage() {}
+            loadStorage() {
+                const data = JSON.parse(
+                    window.localStorage.getItem('wallet-ledger')
+                );
 
-            saveStorage() {}
+                this.loadList(data);
+            }
+
+            saveStorage() {
+                const data = this.transactions.map(transaction => {
+                    return transaction.getRaw();
+                });
+
+                window.localStorage.setItem('wallet-ledger', JSON.stringify(data));
+            }
 
             summarize() {
                 let balance = {
@@ -978,6 +991,26 @@
                 this.comment = comment;
 
                 this.ledger = undefined;
+            }
+
+            getRaw() {
+                return {
+                    value: this.value,
+                    wallet: this.wallet,
+                    type: this.type,
+                    reimbursable: this.reimbursable,
+                    reimbursed: this.reimbursed,
+                    date: this.date,
+                    from: this.from,
+                    to: this.to,
+                    travelType: this.travelType,
+                    comment: this.comment
+                };
+            }
+
+            setProperty(property, value) {
+                this[property] = value;
+                this.ledger.saveStorage();
             }
 
             renderRow() {
@@ -1037,7 +1070,7 @@
                             const value = parseInt(input.value);
 
                             if (!isNaN(value)) {
-                                this[property] = value;
+                                this.setProperty(property, value);
                                 element.innerText = formatNumber(value);
                                 
                                 if (value < 0) {
@@ -1074,7 +1107,7 @@
                         eventListener: [['change', 'focusout'], e => {
                             const value = input.value;
 
-                            this[property] = value;
+                            this.setProperty(property, value);
                             element.innerText = value;
                                 
                             input.remove();
@@ -1099,7 +1132,7 @@
                         eventListener: [['change', 'focusout'], e => {
                             const value = input.value;
 
-                            this[property] = value;
+                            this.setProperty(property, value);
                             element.innerText = value;
                                 
                             input.remove();
@@ -1140,7 +1173,7 @@
                         eventListener: [['change', 'focusout'], e => {
                             const value = input.value;
 
-                            this[property] = value;
+                            this.setProperty(property, value);
                             element.innerText = formatDate(value);
                                 
                             input.remove();
@@ -1170,7 +1203,7 @@
                         eventListener: [['change', 'focusout'], e => {
                             const value = select.value;
 
-                            this[property] = value;
+                            this.setProperty(property, value);
                             element.innerText = value;
 
                             select.remove();
@@ -1466,58 +1499,7 @@
 
         const ledger = new Ledger();
 
-        const sample = [
-            {
-                value: -324,
-                wallet: 'MSF',
-                type: 'Food',
-                reimbursable: true,
-                reimbursed: false,
-                date: '2024-09-28',
-                from: '',
-                to: '',
-                travelType: '',
-                comment: ''
-            },
-            {
-                value: -2000,
-                wallet: 'Personal',
-                type: 'Misc',
-                reimbursable: false,
-                reimbursed: false,
-                date: '2024-09-26',
-                from: '',
-                to: '',
-                travelType: '',
-                comment: ''
-            },
-            {
-                value: -2500,
-                wallet: 'MSF',
-                type: 'Travel',
-                reimbursable: true,
-                reimbursed: false,
-                date: '2024-09-29',
-                from: 'Tennouji Sta.',
-                to: 'USJ',
-                travelType: 'Koukan',
-                comment: 'I promise that I had a good reason for this. We baptized somebody in the Disney pool.'
-            },
-            {
-                value: 18000,
-                wallet: 'MSF',
-                type: 'Payment',
-                reimbursable: false,
-                reimbursed: false,
-                date: '2024-09-26',
-                from: '',
-                to: '',
-                travelType: '',
-                comment: ''
-            }
-        ];
-
-        ledger.loadList(sample);
+        ledger.loadStorage();
         ledger.refresh();
 
         addButton.addEventListener('click', () => {
@@ -1553,6 +1535,7 @@
                 };
 
                 ledger.addTransaction(data);
+                ledger.saveStorage();
                 ledger.refresh();
             }
 
@@ -1594,8 +1577,12 @@
 
         subtractTypeInput.addEventListener('change', e => {
             if (e.currentTarget.value === 'Travel') {
+                subtractFromRow.classList.remove('hide');
+                subtractToRow.classList.remove('hide');
                 subtractTravelTypeRow.classList.remove('hide');
             } else {
+                subtractFromRow.classList.add('hide');
+                subtractToRow.classList.add('hide');
                 subtractTravelTypeRow.classList.add('hide');
             }
         }, false);
@@ -1618,6 +1605,7 @@
                 };
 
                 ledger.addTransaction(data);
+                ledger.saveStorage();
                 ledger.refresh();
             }
 
