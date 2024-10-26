@@ -555,6 +555,24 @@
         #add-buttons button {
             margin: 2em;
         }
+
+        #receipt-back-arrow {
+            font-size: 3em;
+            color: #cbcbcb;
+            width: 1.5em;
+            text-align: center;
+            margin: 0;
+            position: absolute;
+            left: .5em;
+            top: .2em;
+        }
+
+        #receipt-view {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 8em;
+        }
     </style>
 </head>
 
@@ -824,6 +842,7 @@
         const detailsView = document.querySelector('#details-view');
         const addView = document.querySelector('#add-view');
         const subtractView = document.querySelector('#subtract-view');
+        const receiptView = document.querySelector('#receipt-view');
 
         const dateInputWrappers = document.querySelectorAll('.date-input-wrapper');
         const transactionsBody = document.querySelector('#transactions-list-body');
@@ -1033,6 +1052,59 @@
                 });
             }
 
+            renderReceipt() {
+                while (receiptView.firstChild) {
+                    receiptView.firstChild.remove();
+                }
+
+                createElement('DIV', {
+                    parent: receiptView,
+                    ID: 'receipt-back-arrow',
+                    text: '&#8592;',
+                    eventListener: ['click', () => {
+                        receiptView.classList.add('hide');
+                        mainView.classList.remove('hide');
+                    }]
+                });
+
+                const receiptTable = createElement('TABLE', {
+                    parent: receiptView,
+                    elementClass: 'receipt-table'
+                });
+
+                const headerRow = createElement('TR', {
+                    parent: receiptTable
+                });
+
+                createElement('TH', {
+                    parent: headerRow,
+                    text: 'Value'
+                });
+
+                createElement('TH', {
+                    parent: headerRow,
+                    text: 'Type'
+                });
+
+                createElement('TH', {
+                    parent: headerRow,
+                    text: 'Date'
+                });
+
+                this.transactions.toReversed().forEach(transaction => {
+                    if (transaction.value < 0) {
+                        const rows = transaction.renderReceiptRows();
+
+                        rows.forEach(row => {
+                            receiptTable.appendChild(row);
+                        });
+                    }
+                });
+
+                mainView.classList.add('hide');
+                receiptView.classList.remove('hide');
+            }
+
             refresh() {
                 this.summarize();
                 this.renderList();
@@ -1112,6 +1184,86 @@
                 });
 
                 return rowElement;
+            }
+
+            renderReceiptRows() {
+                const topRow = createElement('TR', {
+                    elementClass: 'receipt-top-row'
+                });
+
+                const valueColumn = createElement('TD', {
+                    parent: topRow,
+                    text: formatNumber(-this.value)
+                });
+
+                const typeColumn = createElement('TD', {
+                    parent: topRow,
+                    text: this.type
+                });
+
+                const dateColumn = createElement('TD', {
+                    parent: topRow,
+                    text: formatDate(this.date)
+                });
+
+                const bottomRow = createElement('TR', {
+                    elementClass: 'receipt-bottom-row'
+                });
+
+                const infoColumn = createElement('TD', {
+                    parent: bottomRow,
+                    attributes: {
+                        'colspan': 3
+                    }
+                });
+
+                const infoList = createElement('UL', {
+                    parent: infoColumn,
+                    elementClass: 'receipt-info-list'
+                });
+
+                if (this.type === 'Travel') {
+                    const fromItem = createElement('LI', {
+                        parent: infoList
+                    });
+                    createElement('SPAN', {
+                        parent: fromItem,
+                        elementClass: 'receipt-info-header',
+                        text: 'From: '
+                    });
+                    createElement('SPAN', {
+                        parent: fromItem,
+                        text: this.from
+                    });
+
+                    const toItem = createElement('LI', {
+                        parent: infoList
+                    });
+                    createElement('SPAN', {
+                        parent: toItem,
+                        elementClass: 'receipt-info-header',
+                        text: 'To: '
+                    });
+                    createElement('SPAN', {
+                        parent: toItem,
+                        text: this.to
+                    });
+                }
+
+                const commentItem = createElement('LI', {
+                    parent: infoList
+                });
+                createElement('SPAN', {
+                    parent: commentItem,
+                    elementClass: 'receipt-info-header',
+                    text: 'Comment: '
+                });
+                createElement('SPAN', {
+                    parent: commentItem,
+                    text: this.comment
+                });
+
+                return [topRow, bottomRow];
             }
 
             createEdit(element, type, property, callback) {
@@ -1712,6 +1864,10 @@
         subtractDiscardButton.addEventListener('click', () => {
             subtractView.classList.add('hide');
             mainView.classList.remove('hide');
+        }, false);
+
+        receiptButton.addEventListener('click', () => {
+            ledger.renderReceipt();
         }, false);
 
         function editBalance(element, wallet) {
