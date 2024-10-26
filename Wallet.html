@@ -431,6 +431,20 @@
             outline: none;
         }
 
+        .balance-edit-input {
+            width: 4.5em;
+            height: 1.4em;
+            font-size: 100%;
+            padding: .2em .5em;
+            border: none;
+            border-bottom: solid 3px rgb(255, 255, 255);
+            background: #1f628e;
+            color: white;
+            outline: none;
+            text-align: center;
+            font-weight: 500;
+        }
+
         .comment-input {
             width: 90%;
             height: 4.5em;
@@ -583,7 +597,7 @@
                 <tr>
                     <th>円</th>
                     <th>Type</th>
-                    <th>Reimburse</th>
+                    <th>Returned</th>
                     <th>Date</th>
                 </tr>
             </thead>
@@ -711,7 +725,7 @@
                 </td>
             </tr>
             <tr id="subtract-reimbursed-row" class="hide">
-                <td class="subtract-table-header">Reimbursed</td>
+                <td class="subtract-table-header">Returned</td>
                 <td class="subtract-table-item">
                     <div class="checkmark-indicator">
                         <input id="subtract-reimbursed-input" type="checkbox"" class=" checkmark-input">
@@ -762,7 +776,7 @@
                             <option value="Transfers">
                                 Transfers
                             </option>
-                            <optio value="MLC"n>
+                            <option value="MLC">
                                 MLC
                             </option>
                             <option value="TTTM">
@@ -842,6 +856,7 @@
         const subtractToInput = document.querySelector('#subtract-to-input');
         const subtractFromRow = document.querySelector('#subtract-from-row');
         const subtractToRow = document.querySelector('#subtract-to-row');
+        const subtractTravelTypeRow = document.querySelector('#subtract-travel-type-row');
         const subtractTravelTypeInput = document.querySelector('#subtract-travel-type-input');
         const subtractCommentInput = document.querySelector('#subtract-comment-input');
         const subtractSaveButton = document.querySelector('#subtract-save');
@@ -914,6 +929,12 @@
         class Ledger {
             constructor() {
                 this.transactions = [];
+
+                this.balance = {
+                    MSF: 0,
+                    Personal: 0,
+                    ICOCA: 0
+                };
             }
 
             addTransaction(data) {
@@ -980,19 +1001,25 @@
             }
 
             summarize() {
-                let balance = {
+                this.balance = {
                     MSF: 0,
                     Personal: 0,
                     ICOCA: 0
                 };
 
                 this.transactions.forEach(transaction => {
-                    balance[transaction.wallet] += transaction.value;
+                    if (transaction.wallet !== 'ICOCA') {
+                        if (transaction.type === 'ICOCA') {
+                            this.balance.ICOCA -= transaction.value;
+                        }
+                    }
+
+                    this.balance[transaction.wallet] += transaction.value;
                 });
 
-                msfBalanceLabel.innerText = formatNumber(balance.MSF);
-                personalBalanceLabel.innerText = formatNumber(balance.Personal);
-                icocaBalanceLabel.innerText = formatNumber(balance.ICOCA);
+                msfBalanceLabel.innerText = formatNumber(this.balance.MSF);
+                personalBalanceLabel.innerText = formatNumber(this.balance.Personal);
+                icocaBalanceLabel.innerText = formatNumber(this.balance.ICOCA);
             }
 
             renderList() {
@@ -1074,9 +1101,9 @@
                     text: this.type
                 });
 
-                const reimburseColumn = createElement('TD', {
+                const reimbursedColumn = createElement('TD', {
                     parent: rowElement,
-                    text: 'No'
+                    text: this.reimbursed ? 'Yes' : 'No'
                 });
 
                 const dateColumn = createElement('TD', {
@@ -1102,26 +1129,28 @@
                             'type': 'text'
                         },
                         eventListener: [['change', 'focusout'], e => {
-                            const value = parseInt(input.value);
+                            if (element.getAttribute('editing') === 'yes') {
+                                const value = parseFloat(input.value);
 
-                            if (!isNaN(value)) {
-                                this.setProperty(property, value);
-                                element.innerText = formatNumber(value);
-                                
-                                if (value < 0) {
-                                    element.classList.remove('positive');
-                                    element.classList.add('negative');
-                                } else {
-                                    element.classList.remove('negative');
-                                    element.classList.add('positive');
+                                if (!isNaN(value)) {
+                                    this.setProperty(property, value);
+                                    element.innerText = formatNumber(value);
+                                    
+                                    if (value < 0) {
+                                        element.classList.remove('positive');
+                                        element.classList.add('negative');
+                                    } else {
+                                        element.classList.remove('negative');
+                                        element.classList.add('positive');
+                                    }
                                 }
-                            }
 
-                            input.remove();
-                            element.setAttribute('editing', 'no');
+                                input.remove();
+                                element.setAttribute('editing', 'no');
 
-                            if (callback) {
-                                callback(value);
+                                if (callback) {
+                                    callback(value);
+                                }
                             }
                         }]
                     });
@@ -1140,16 +1169,18 @@
                             'type': 'text'
                         },
                         eventListener: [['change', 'focusout'], e => {
-                            const value = input.value;
+                            if (element.getAttribute('editing') === 'yes') {
+                                const value = input.value;
 
-                            this.setProperty(property, value);
-                            element.innerText = value;
-                                
-                            input.remove();
-                            element.setAttribute('editing', 'no');
+                                this.setProperty(property, value);
+                                element.innerText = value;
+                                    
+                                input.remove();
+                                element.setAttribute('editing', 'no');
 
-                            if (callback) {
-                                callback(value);
+                                if (callback) {
+                                    callback(value);
+                                }
                             }
                         }]
                     });
@@ -1165,16 +1196,18 @@
                         parent: element,
                         elementClass: 'comment-input',
                         eventListener: [['change', 'focusout'], e => {
-                            const value = input.value;
+                            if (element.getAttribute('editing') === 'yes') {
+                                const value = input.value;
 
-                            this.setProperty(property, value);
-                            element.innerText = value;
-                                
-                            input.remove();
-                            element.setAttribute('editing', 'no');
+                                this.setProperty(property, value);
+                                element.innerText = value;
+                                    
+                                input.remove();
+                                element.setAttribute('editing', 'no');
 
-                            if (callback) {
-                                callback(value);
+                                if (callback) {
+                                    callback(value);
+                                }
                             }
                         }]
                     });
@@ -1206,16 +1239,18 @@
                             'value': this[property]
                         },
                         eventListener: [['change', 'focusout'], e => {
-                            const value = input.value;
+                            if (element.getAttribute('editing') === 'yes') {
+                                const value = input.value;
 
-                            this.setProperty(property, value);
-                            element.innerText = formatDate(value);
-                                
-                            input.remove();
-                            element.setAttribute('editing', 'no');
+                                this.setProperty(property, value);
+                                element.innerText = formatDate(value);
+                                    
+                                input.remove();
+                                element.setAttribute('editing', 'no');
 
-                            if (callback) {
-                                callback(value);
+                                if (callback) {
+                                    callback(value);
+                                }
                             }
                         }]
                     });
@@ -1236,16 +1271,18 @@
                             value: this[property]
                         },
                         eventListener: [['change', 'focusout'], e => {
-                            const value = select.value;
+                            if (element.getAttribute('editing') === 'yes') {
+                                const value = select.value;
 
-                            this.setProperty(property, value);
-                            element.innerText = value;
+                                this.setProperty(property, value);
+                                element.innerText = value;
 
-                            select.remove();
-                            element.setAttribute('editing', 'no');
+                                select.remove();
+                                element.setAttribute('editing', 'no');
 
-                            if (callback) {
-                                callback(value);
+                                if (callback) {
+                                    callback(value);
+                                }
                             }
                         }]
                     });
@@ -1343,9 +1380,11 @@
                                 if (type !== 'Travel') {
                                     fromRow.classList.add('hide');
                                     toRow.classList.add('hide');
+                                    travelTypeRow.classList.add('hide');
                                 } else {
                                     fromRow.classList.remove('hide');
                                     toRow.classList.remove('hide');
+                                    travelTypeRow.classList.remove('hide');
                                 }
                             });
                         }
@@ -1377,6 +1416,8 @@
                         } else {
                             reimbursedRow.classList.add('hide');
                         }
+
+                        this.setProperty('reimbursable', e.currentTarget.checked);
                     }],
                     attributes: {
                         type: 'checkbox',
@@ -1392,7 +1433,7 @@
                 createElement('TD', {
                     parent: reimbursedRow,
                     elementClass: 'details-table-header',
-                    text: 'Reimbursed'
+                    text: 'Returned'
                 });
                 const reimbursedColumn = createElement('TD', {
                     parent: reimbursedRow,
@@ -1408,7 +1449,10 @@
                     attributes: {
                         type: 'checkbox',
                         checked: this.reimbursed
-                    }
+                    },
+                    eventListener: ['change', e => {
+                        this.setProperty('reimbursed', e.currentTarget.checked);
+                    }]
                 });
 
                 const dateRow = createElement('TR', {
@@ -1602,6 +1646,7 @@
         subtractButton.addEventListener('click', () => {
             subtractViewBalance.value = '';
             subtractViewWallet.value = 'MSF';
+            subtractTypeInput.value = 'Food';
             subtractReimbursableInput.checked = false;
             subtractReimbursedInput.checked = false;
 
@@ -1667,6 +1712,75 @@
         subtractDiscardButton.addEventListener('click', () => {
             subtractView.classList.add('hide');
             mainView.classList.remove('hide');
+        }, false);
+
+        function editBalance(element, wallet) {
+            if (element.getAttribute('editing') === 'yes') {
+                return;
+            }
+
+            while (element.firstChild) {
+                element.firstChild.remove();
+            }
+
+            const currency = element.parentNode.querySelector('.balance-currency');
+            currency.classList.add('hide');
+
+            element.setAttribute('editing', 'yes');
+
+            const input = createElement('INPUT', {
+                parent: element,
+                elementClass: 'balance-edit-input',
+                attributes: {
+                    'type': 'text'
+                },
+                eventListener: [['change', 'focusout'], e => {
+                    if (element.getAttribute('editing') === 'yes') {
+                        const value = parseFloat(input.value);
+
+                        if (!isNaN(value) && value !== ledger.balance[wallet]) {
+                            const today = new Date().toISOString().split('T')[0];
+
+                            const data = {
+                                value: value - ledger.balance[wallet],
+                                wallet: wallet,
+                                type: 'Misc',
+                                reimbursable: false,
+                                reimbursed: false,
+                                date: today,
+                                from: '',
+                                to: '',
+                                travelType: '',
+                                comment: ''
+                            };
+
+                            ledger.addTransaction(data);
+                        }
+
+                        ledger.refresh();
+
+                        currency.classList.remove('hide');
+
+                        input.remove();
+                        element.setAttribute('editing', 'no');
+                    }
+                }]
+            });
+
+            input.focus();
+            input.value = ledger.balance[wallet];
+        }
+
+        msfBalanceLabel.addEventListener('click', () => {
+            editBalance(msfBalanceLabel, 'MSF');
+        }, false);
+
+        personalBalanceLabel.addEventListener('click', () => {
+            editBalance(personalBalanceLabel, 'Personal');
+        }, false);
+
+        icocaBalanceLabel.addEventListener('click', () => {
+            editBalance(icocaBalanceLabel, 'ICOCA');
         }, false);
 
         function dateWrapperCallback(e) {
