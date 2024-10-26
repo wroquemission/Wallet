@@ -23,17 +23,21 @@
             display: flex;
             align-items: center;
             flex-direction: column;
+            padding-top: 8em;
         }
 
         #value-header {
             width: 100%;
             height: 6em;
+            min-height: 6em;
             background: #1f628e;
             font-family: 'Roboto', sans-serif;
             font-size: 1.2em;
             display: flex;
             align-items: center;
             border-bottom: solid .5em #174869;
+            position: fixed;
+            top: 0;
         }
 
         #value-header-table {
@@ -63,7 +67,7 @@
             color: #8d8d8d;
             display: flex;
             width: 100%;
-            height: 4em;
+            min-height: 4em;
             justify-content: center;
             align-items: center;
         }
@@ -309,7 +313,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-bottom: 8em;
+            padding-bottom: 3em;
             overflow-y: scroll;
         }
 
@@ -572,6 +576,75 @@
             flex-direction: column;
             align-items: center;
             padding-bottom: 8em;
+        }
+
+        #receipt-table {
+            width: 95%;
+            table-layout: fixed;
+            text-align: center;
+            border-collapse: collapse;
+            color: #737373;
+            margin-top: 5em;
+        }
+
+        #receipt-table th {
+            font-weight: 400;
+            font-size: 1.2em;
+            color: #8d8d8d;
+            border-bottom: solid .13em #969696;
+            padding: .5em;
+            max-height: 1em;
+        }
+
+        tr.receipt-top-row {
+            height: 4em;
+        }
+
+        tr.receipt-bottom-row {
+            height: 4em;
+            background: #e7e7e7;
+            border-left: solid 4px #737373;
+        }
+
+        ul.receipt-info-list {
+            text-align: left;
+            line-height: 1.8em;
+        }
+
+        span.receipt-info-header {
+            font-weight: 600;
+        }
+
+        tr.empty-row-bottom {
+            height: 1.5em;
+            border-bottom: dashed 2px #ccc;
+        }
+
+        tr.empty-row-top {
+            height: 1em;
+        }
+
+        #receipt-check-all {
+            min-width: 92%;
+            height: 2.5em;
+            border: none;
+            outline: none;
+            border-radius: .4em;
+            font-size: 1.2em;
+            background: #1f628e;
+            color: white;
+        }
+
+        #receipt-check-all-wrapper {
+            position: fixed;
+            bottom: 0;
+            height: 6em;
+            width: 100%;
+            background: white;
+            border-top: solid .23em #d3d3d3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
     </style>
 </head>
@@ -1069,7 +1142,7 @@
 
                 const receiptTable = createElement('TABLE', {
                     parent: receiptView,
-                    elementClass: 'receipt-table'
+                    ID: 'receipt-table'
                 });
 
                 const headerRow = createElement('TR', {
@@ -1092,13 +1165,42 @@
                 });
 
                 this.transactions.toReversed().forEach(transaction => {
-                    if (transaction.value < 0) {
+                    if (transaction.value < 0 && transaction.reimbursable && !transaction.reimbursed) {
                         const rows = transaction.renderReceiptRows();
+
+                        createElement('TR', {
+                            parent: receiptTable,
+                            elementClass: 'empty-row-top'
+                        });
 
                         rows.forEach(row => {
                             receiptTable.appendChild(row);
                         });
+                            
+                        createElement('TR', {
+                            parent: receiptTable,
+                            elementClass: 'empty-row-bottom'
+                        });
                     }
+                });
+
+                createElement('BUTTON', {
+                    parent: createElement('DIV', {
+                        parent: receiptView,
+                        ID: 'receipt-check-all-wrapper'
+                    }),
+                    ID: 'receipt-check-all',
+                    text: 'CHECK ALL',
+                    eventListener: ['click', () => {
+                        this.transactions.forEach(transaction => {
+                            transaction.setProperty('reimbursed', true);
+                        });
+
+                        this.refresh();
+
+                        receiptView.classList.add('hide');
+                        mainView.classList.remove('hide');
+                    }]
                 });
 
                 mainView.classList.add('hide');
@@ -1188,7 +1290,8 @@
 
             renderReceiptRows() {
                 const topRow = createElement('TR', {
-                    elementClass: 'receipt-top-row'
+                    elementClass: 'receipt-top-row',
+                    eventListener: ['click', this.renderDetails.bind(this)]
                 });
 
                 const valueColumn = createElement('TD', {
@@ -1198,7 +1301,7 @@
 
                 const typeColumn = createElement('TD', {
                     parent: topRow,
-                    text: this.type
+                    text: this.type === 'Travel' ? this.travelType : this.type
                 });
 
                 const dateColumn = createElement('TD', {
@@ -1207,7 +1310,8 @@
                 });
 
                 const bottomRow = createElement('TR', {
-                    elementClass: 'receipt-bottom-row'
+                    elementClass: 'receipt-bottom-row',
+                    eventListener: ['click', this.renderDetails.bind(this)]
                 });
 
                 const infoColumn = createElement('TD', {
@@ -1250,20 +1354,28 @@
                     });
                 }
 
-                const commentItem = createElement('LI', {
-                    parent: infoList
-                });
-                createElement('SPAN', {
-                    parent: commentItem,
-                    elementClass: 'receipt-info-header',
-                    text: 'Comment: '
-                });
-                createElement('SPAN', {
-                    parent: commentItem,
-                    text: this.comment
-                });
+                if (this.comment) {
+                    const commentItem = createElement('LI', {
+                        parent: infoList
+                    });
+                    createElement('SPAN', {
+                        parent: commentItem,
+                        elementClass: 'receipt-info-header',
+                        text: 'Comment: '
+                    });
+                    createElement('SPAN', {
+                        parent: commentItem,
+                        text: this.comment
+                    });
+                }
 
-                return [topRow, bottomRow];
+                let rows = [topRow];
+
+                if (this.type === 'Travel' || this.comment) {
+                    rows.push(bottomRow);
+                }
+
+                return rows;
             }
 
             createEdit(element, type, property, callback) {
@@ -1740,6 +1852,7 @@
                 })
 
                 mainView.classList.add('hide');
+                receiptView.classList.add('hide');
                 detailsView.classList.remove('hide');
             }
         }
@@ -1801,6 +1914,8 @@
             subtractTypeInput.value = 'Food';
             subtractReimbursableInput.checked = false;
             subtractReimbursedInput.checked = false;
+
+            subtractReimbursedRow.classList.add('hide');
 
             const today = new Date().toISOString().split('T')[0];
 
