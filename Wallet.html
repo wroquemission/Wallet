@@ -13,17 +13,18 @@
             width: 100%;
             height: 100%;
             font-family: 'Roboto', sans-serif;
+            zoom: 0.9;
         }
 
         #main-view {
             margin: 0;
             padding: 0;
             width: 100%;
-            height: 100%;
             display: flex;
             align-items: center;
             flex-direction: column;
-            padding-top: 8em;
+            padding-top: 8.5em;
+            padding-bottom: 160px;
         }
 
         #value-header {
@@ -67,7 +68,7 @@
             color: #8d8d8d;
             display: flex;
             width: 100%;
-            min-height: 4em;
+            min-height: 2em;
             justify-content: center;
             align-items: center;
         }
@@ -128,7 +129,7 @@
             height: 2.5em;
             border: none;
             outline: none;
-            margin: .3em;
+            margin: .5em;
             border-radius: .4em;
             font-size: 1.2em;
         }
@@ -313,7 +314,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-bottom: 3em;
+            padding-bottom: 160px;
             overflow-y: scroll;
         }
 
@@ -364,12 +365,14 @@
             border: solid .1em rgb(134, 134, 134);
             color: #5b5b5b;
             outline: none;
+            background: white;
         }
 
         .select-input-wrapper {
             position: relative;
             width: fit-content;
             margin: auto;
+            background: white;
         }
 
         .select-input-wrapper::before,
@@ -433,6 +436,16 @@
             border: solid 3px rgb(169, 168, 168);
             color: #5b5b5b;
             outline: none;
+        }
+
+        input#receipt-name {
+            margin-top: 6em;
+            width: 80%;
+            height: 2em;
+            font-size: .9em;
+            padding: .7em 1em;
+            border: solid .1em rgb(134, 134, 134);
+            color: #5b5b5b;
         }
 
         .balance-edit-input {
@@ -575,16 +588,16 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-bottom: 8em;
+            padding-bottom: 160px;
         }
 
         #receipt-table {
-            width: 95%;
+            width: 85%;
             table-layout: fixed;
             text-align: center;
             border-collapse: collapse;
             color: #737373;
-            margin-top: 5em;
+            margin-top: 1.5em;
         }
 
         #receipt-table th {
@@ -645,6 +658,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        input, textarea, button, select {
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        * {
+            user-select: none;
         }
     </style>
 </head>
@@ -1077,9 +1099,14 @@
             }
 
             loadStorage() {
-                const data = JSON.parse(
-                    window.localStorage.getItem('wallet-ledger')
-                );
+                const storage = window.localStorage.getItem('wallet-ledger');
+                let data;
+                
+                if (storage) {
+                    data = JSON.parse(storage);
+                } else {
+                    data = [];
+                }
 
                 this.loadList(data);
             }
@@ -1138,6 +1165,20 @@
                         receiptView.classList.add('hide');
                         mainView.classList.remove('hide');
                     }]
+                });
+
+                createElement('INPUT', {
+                    parent: receiptView,
+                    ID: 'receipt-name',
+                    eventListener: ['change', e => {
+                        window.localStorage.setItem(
+                            'receipt-name',
+                            e.currentTarget.value
+                        );
+                    }],
+                    attributes: {
+                        value: window.localStorage.getItem('receipt-name')
+                    }
                 });
 
                 const receiptTable = createElement('TABLE', {
@@ -1925,6 +1966,11 @@
             subtractFromInput.value = '';
             subtractToInput.value = '';
             subtractCommentInput.value = '';
+            subtractTravelTypeInput.value = 'Koukan';
+
+            subtractFromRow.classList.add('hide');
+            subtractToRow.classList.add('hide');
+            subtractTravelTypeRow.classList.add('hide');
 
             subtractView.classList.remove('hide');
             mainView.classList.add('hide');
