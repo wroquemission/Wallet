@@ -637,6 +637,22 @@
             height: 1em;
         }
 
+        div#receipt-total {
+            width: 85%;
+            display: flex;
+            align-items: center;
+            justify-content: left;
+            margin-top: 1em;
+            font-size: 1.4em;
+            color: #464646;
+            border-bottom: solid .13em #969696;
+        }
+
+        #receipt-total-label {
+            margin-right: auto;
+            font-weight: 500;
+        }
+
         #receipt-check-all {
             min-width: 92%;
             height: 2.5em;
@@ -1205,9 +1221,13 @@
                     text: 'Date'
                 });
 
+                let total = 0;
+
                 this.transactions.toReversed().forEach(transaction => {
                     if (transaction.value < 0 && transaction.reimbursable && !transaction.reimbursed) {
                         const rows = transaction.renderReceiptRows();
+
+                        total += Math.abs(transaction.value);
 
                         createElement('TR', {
                             parent: receiptTable,
@@ -1223,6 +1243,23 @@
                             elementClass: 'empty-row-bottom'
                         });
                     }
+                });
+
+                const receiptTotal = createElement('DIV', {
+                    parent: receiptView,
+                    ID: 'receipt-total'
+                });
+
+                createElement('SPAN', {
+                    parent: receiptTotal,
+                    ID: 'receipt-total-label',
+                    text: 'Total'
+                });
+
+                const totalElement = createElement('SPAN', {
+                    parent: receiptTotal,
+                    ID: 'receipt-total-value',
+                    text: formatNumber(total)
                 });
 
                 createElement('BUTTON', {
