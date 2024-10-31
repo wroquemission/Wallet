@@ -683,6 +683,12 @@
         * {
             user-select: none;
         }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
     </style>
 </head>
 
@@ -749,7 +755,7 @@
     </div>
     <div id="add-view" class="hide">
         <h1 id="add-balance" class="positive">
-            <input id="add-balance-input" type="text" class="edit-input" autocomplete="off">
+            <input id="add-balance-input" type="number" class="edit-input" autocomplete="off">
             円
         </h1>
         <table id="add-table">
@@ -792,7 +798,7 @@
     </div>
     <div id="subtract-view" class="hide">
         <h1 id="subtract-balance" class="negative">
-            <input id="subtract-balance-input" type="text" class="edit-input" autocomplete="off">
+            <input id="subtract-balance-input" type="number" class="edit-input" autocomplete="off">
             円
         </h1>
         <table id="subtract-table">
@@ -1473,7 +1479,7 @@
                         parent: element,
                         elementClass: 'edit-input',
                         attributes: {
-                            'type': 'text'
+                            'type': 'number'
                         },
                         eventListener: [['change', 'focusout'], e => {
                             if (element.getAttribute('editing') === 'yes') {
@@ -2105,7 +2111,7 @@
                 parent: element,
                 elementClass: 'balance-edit-input',
                 attributes: {
-                    'type': 'text'
+                    'type': 'number'
                 },
                 eventListener: [['change', 'focusout'], e => {
                     if (element.getAttribute('editing') === 'yes') {
