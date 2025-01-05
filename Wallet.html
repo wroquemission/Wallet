@@ -2149,6 +2149,7 @@
                         ledger.addTransaction(data);
                     }
 
+                    ledger.saveStorage();
                     ledger.refresh();
                 }
             });
@@ -2263,6 +2264,7 @@
                             ledger.addTransaction(data);
                         }
 
+                        ledger.saveStorage();
                         ledger.refresh();
 
                         currency.classList.remove('hide');
