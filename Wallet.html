@@ -689,6 +689,20 @@
             -webkit-appearance: none;
             margin: 0;
         }
+
+        #summarize-button {
+            position: relative;
+            top: -5em;
+            margin-bottom: 2em;
+            min-width: 92%;
+            height: 2.5em;
+            border: none;
+            outline: none;
+            border-radius: .4em;
+            font-size: 1.2em;
+            background: #ff5757;
+            color: white;
+        }
     </style>
 </head>
 
@@ -737,6 +751,7 @@
             </thead>
             <tbody id="transactions-list-body"></tbody>
         </table>
+        <button id="summarize-button">Clear All</button>
         <div id="page-navigator"></div>
         <div id="main-buttons">
             <button id="add-button">円</button>
@@ -745,14 +760,7 @@
         </div>
     </div>
     <div id="details-view" class="hide"> </div>
-    <div id="confirmation-view" class="hide">
-        <div id="confirmation-back-arrow">&#8592;</div>
-        <h1 id="confirmation-header">Save changes?</h1>
-        <div id="confirmation-buttons" class="save-discard-buttons">
-            <button id="confirmation-save" class="save-button">SAVE</button>
-            <button id="confirmation-discard" class="discard-button">DISCARD</button>
-        </div>
-    </div>
+    <div id="confirmation-view" class="hide"></div>
     <div id="add-view" class="hide">
         <h1 id="add-balance" class="positive">
             <input id="add-balance-input" type="number" class="edit-input" autocomplete="off">
@@ -971,6 +979,10 @@
         const subtractButton = document.querySelector('#subtract-button');
         const receiptButton = document.querySelector('#receipt-button');
 
+        const summarizeButton = document.querySelector('#summarize-button');
+
+        const confirmationView = document.querySelector('#confirmation-view');
+
         const addViewBalance = document.querySelector('#add-balance-input');
         const addViewWallet = document.querySelector('#add-wallet-input');
         const addDateLabel = document.querySelector('#add-date-label');
@@ -998,6 +1010,7 @@
         const subtractDiscardButton = document.querySelector('#subtract-discard');
 
         let currentTransaction = undefined;
+        let returnView = mainView;
 
         function formatDate(date) {
             const parsedDate = new Date(date);
@@ -1174,6 +1187,8 @@
             }
 
             renderReceipt() {
+                returnView = receiptView;
+
                 while (receiptView.firstChild) {
                     receiptView.firstChild.remove();
                 }
@@ -1184,7 +1199,9 @@
                     text: '&#8592;',
                     eventListener: ['click', () => {
                         receiptView.classList.add('hide');
-                        mainView.classList.remove('hide');
+                        returnView.classList.remove('hide');
+
+                        returnView = mainView;
 
                         mainView.scrollTo(0, 0);
                     }]
@@ -1656,6 +1673,7 @@
 
             renderDetails() {
                 currentTransaction = this;
+                returnView = detailsView;
 
                 while (detailsView.firstChild) {
                     detailsView.firstChild.remove();
@@ -1669,7 +1687,9 @@
                         this.ledger.refresh();
 
                         detailsView.classList.add('hide');
-                        mainView.classList.remove('hide');
+                        returnView.classList.remove('hide');
+
+                        returnView = mainView;
 
                         mainView.scrollTo(0, 0);
                     }]
@@ -1934,15 +1954,19 @@
                     ID: 'details-delete',
                     text: 'DELETE',
                     eventListener: ['click', () => {
-                        this.ledger.removeTransaction(this);
-                        this.ledger.refresh();
+                        confirmPrompt('Are you sure?', 'Yes', 'No').then(response => {
+                            if (response) {
+                                this.ledger.removeTransaction(this);
+                                this.ledger.refresh();
 
-                        detailsView.classList.add('hide');
-                        mainView.classList.remove('hide');
+                                detailsView.classList.add('hide');
+                                mainView.classList.remove('hide');
 
-                        mainView.scrollTo(0, 0);
+                                mainView.scrollTo(0, 0);
+                            }
+                        });
                     }]
-                })
+                });
 
                 mainView.classList.add('hide');
                 receiptView.classList.add('hide');
@@ -2030,8 +2054,6 @@
 
             subtractView.classList.remove('hide');
             mainView.classList.add('hide');
-
-            subtractView.scrollTo(0, 0);
         }, false);
 
         subtractReimbursableInput.addEventListener('change', e => {
@@ -2092,6 +2114,111 @@
         receiptButton.addEventListener('click', () => {
             ledger.renderReceipt();
         }, false);
+
+        summarizeButton.addEventListener('click', () => {
+            confirmPrompt('Are you sure?', 'Yes', 'No').then(response => {
+                if (response) {
+                    const balance = structuredClone(ledger.balance);
+
+                    while (ledger.transactions.length) {
+                        ledger.removeTransaction(
+                            ledger.transactions[0]
+                        );
+                    }
+
+                    const today = new Date().toISOString().split('T')[0];
+
+                    for (const wallet in balance) {
+                        if (balance[wallet] === 0) {
+                            continue;
+                        }
+
+                        const data = {
+                            value: balance[wallet],
+                            wallet: wallet,
+                            type: 'Misc',
+                            reimbursable: false,
+                            reimbursed: false,
+                            date: today,
+                            from: '',
+                            to: '',
+                            travelType: '',
+                            comment: ''
+                        };
+
+                        ledger.addTransaction(data);
+                    }
+
+                    ledger.refresh();
+                }
+            });
+        }, false);
+
+        function confirmPrompt(header, yesLabel, noLabel) {
+            confirmationView.classList.remove('hide');
+            returnView.classList.add('hide');
+
+            while (confirmationView.firstChild) {
+                confirmationView.firstChild.remove();
+            }
+
+            return new Promise(resolve => {
+                createElement('DIV', {
+                    parent: confirmationView,
+                    ID: 'confirmation-back-arrow',
+                    text: '&#8592;',
+                    eventListener: ['click', () => {
+                        returnView.classList.remove('hide');
+                        confirmationView.classList.add('hide');
+
+                        returnView = mainView;
+
+                        resolve();
+                    }]
+                });
+
+                createElement('H1', {
+                    parent: confirmationView,
+                    ID: 'confirmation-header',
+                    text: header
+                });
+
+                const wrapper = createElement('DIV', {
+                    parent: confirmationView,
+                    elementClass: 'save-discard-buttons'
+                });
+
+                createElement('BUTTON', {
+                    parent: wrapper,
+                    ID: 'confirmation-yes',
+                    elementClass: 'save-button',
+                    text: yesLabel,
+                    eventListener: ['click', () => {
+                        returnView.classList.remove('hide');
+                        confirmationView.classList.add('hide');
+
+                        returnView = mainView;
+
+                        resolve(true);
+                    }]
+                });
+
+                createElement('BUTTON', {
+                    parent: wrapper,
+                    ID: 'confirmation-no',
+                    elementClass: 'discard-button',
+                    text: noLabel,
+                    eventListener: ['click', () => {
+                        returnView.classList.remove('hide');
+                        confirmationView.classList.add('hide');
+
+                        returnView = mainView;
+
+                        resolve(false);
+                    }]
+                });
+            });
+        }
 
         function editBalance(element, wallet) {
             if (element.getAttribute('editing') === 'yes') {
