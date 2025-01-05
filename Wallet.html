@@ -2262,9 +2262,9 @@
                             };
 
                             ledger.addTransaction(data);
+                            ledger.saveStorage();
                         }
 
-                        ledger.saveStorage();
                         ledger.refresh();
 
                         currency.classList.remove('hide');
